@@ -9,6 +9,9 @@ const cors = require('cors');
 const helmet = require('helmet');
 require('express-async-errors');
 const { NOT_FOUND } = require('http-status-codes');
+const { v2: cloudinary } = require('cloudinary');
+const { CloudinaryStorage } = require('multer-storage-cloudinary/lib');
+const multer = require('multer');
 
 const winston = require('./common/logging');
 const wordRouter = require('./resources/words/word.router');
@@ -52,6 +55,17 @@ app.use(
     }
   )
 );
+
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: process.env.CLOUDINARY_FOLDER
+  }
+});
+const parser = multer({ storage });
+app.post('/upload', parser.single('file'), (req, res) => {
+  res.json(req.file);
+});
 
 app.use('/words', wordRouter);
 
