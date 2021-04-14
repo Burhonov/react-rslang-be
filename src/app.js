@@ -31,9 +31,21 @@ const swaggerDocument = YAML.load(path.join(__dirname, '../doc/api.yaml'));
 
 app.use(helmet());
 app.use(cors());
+app.options('*', cors());
 app.use(express.json());
 
 app.use('/files', express.static(path.join(__dirname, '../files')));
+
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: process.env.CLOUDINARY_FOLDER
+  }
+});
+const parser = multer({ storage });
+app.post('/upload', parser.single('file'), (req, res) => {
+  res.json(req.file);
+});
 
 app.use(checkAuthentication);
 
@@ -55,17 +67,6 @@ app.use(
     }
   )
 );
-
-const storage = new CloudinaryStorage({
-  cloudinary,
-  params: {
-    folder: process.env.CLOUDINARY_FOLDER
-  }
-});
-const parser = multer({ storage });
-app.post('/upload', parser.single('file'), (req, res) => {
-  res.json(req.file);
-});
 
 app.use('/words', wordRouter);
 
